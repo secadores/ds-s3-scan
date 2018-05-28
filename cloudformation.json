@@ -14,15 +14,15 @@
         },
         "TenantID": {
           "Description" : "Tenant ID",
-          "Type" : "String",
+          "Type" : "String"
         },
         "Token": {
           "Description" : "Token",
-          "Type" : "String",
+          "Type" : "String"
         },
         "PolicyID": {
           "Description" : "Policy ID",
-          "Type" : "String",
+          "Type" : "String"
         },
 
 
