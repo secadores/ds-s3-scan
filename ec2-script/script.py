@@ -47,43 +47,43 @@ while True:
         #print(body['Message'])
         # print(type(message.body))
         body = json.loads(body["Message"])
+        if "Records" in body:
+            bucket_name = body["Records"][0]["s3"]["bucket"]["name"]
+            cflog_filekey = body["Records"][0]["s3"]["object"]["key"]
+            print (bucket_name)
+            print (cflog_filekey)
+            print('Downloading the message  {} '.format(cflog_filekey))
+            t2 = time.time()
+            try:
+                s3_resource.Bucket(bucket_name).download_file(cflog_filekey, "/scan/" + cflog_filekey)
+                break
+            except (FileNotFoundError, IOError):
+                print("Malware Econtrado!")
+                sns = boto3.client('sns',aws_region)
+                sns_message = {
+                    'bucket': bucket_name,
+                    'file': cflog_filekey
+                }
 
-        bucket_name = body["Records"][0]["s3"]["bucket"]["name"]
-        cflog_filekey = body["Records"][0]["s3"]["object"]["key"]
-        print (bucket_name)
-        print (cflog_filekey)
-        print('Downloading the message  {} '.format(cflog_filekey))
-        t2 = time.time()
-        try:
-            s3_resource.Bucket(bucket_name).download_file(cflog_filekey, "/scan/" + cflog_filekey)
-            break
-        except (FileNotFoundError, IOError):
-            print("Malware Econtrado!")
-            sns = boto3.client('sns',aws_region)
-            sns_message = {
-                'bucket': bucket_name,
-                'file': cflog_filekey
-            }
+                response = sns.publish(
+                    TopicArn=sns_topic,
+                    #TopicArn='arn:aws:sns:us-east-1:102212442704:S3ScanTest-Topic-1N7EHK2N3BOXX',
+                    Message= json.dumps({
+                        'default': json.dumps(sns_message)
+                    }),
+                    Subject='Malware Found',
+                    MessageStructure='json',
+                    MessageAttributes={}
+                )
 
-            response = sns.publish(
-                TopicArn=sns_topic,
-                #TopicArn='arn:aws:sns:us-east-1:102212442704:S3ScanTest-Topic-1N7EHK2N3BOXX',
-                Message= json.dumps({
-                    'default': json.dumps(sns_message)
-                }),
-                Subject='Malware Found',
-                MessageStructure='json',
-                MessageAttributes={}
-            )
-
-        print('Download complete, in %.5f seconds' % (time.time() - t2))
-        print(message)
+                print('Download complete, in %.5f seconds' % (time.time() - t2))
+                print(message)
        # os.system("/opt/ds_agent/dsa_control -m \"AntiMalwareManualScan:true\"")
 
-        messages_to_delete.append({'Id': message.message_id,
-                                   'ReceiptHandle': message.receipt_handle})
-        print("%.5f" % (time.time() - t))
+            messages_to_delete.append({'Id': message.message_id,
+                                       'ReceiptHandle': message.receipt_handle})
+            print("%.5f" % (time.time() - t))
 
-        print('Deleting message: {}'.format(cflog_filekey))
+        print('Deleting messages...')
         if len(messages_to_delete) > 0:
             delete_response = queue.delete_messages(Entries=messages_to_delete)
