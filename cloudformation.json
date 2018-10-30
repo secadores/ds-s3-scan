@@ -12,6 +12,16 @@
           "Type": "AWS::EC2::KeyPair::KeyName",
           "ConstraintDescription" : "must be the name of an existing EC2 KeyPair."
         },
+        "IAMPolicyName": {
+          "Description" : "IAM Policy name to be created",
+          "Default" : "S3ScanPolicy",
+          "Type" : "String"
+        },
+        "IAMPolicyName2": {
+          "Description" : "IAM Policy name to be created",
+          "Default" : "S3ScanPolicy2",
+          "Type" : "String"
+        },
         "TenantID": {
           "Description" : "Tenant ID",
           "Type" : "String"
@@ -185,7 +195,6 @@
       "ScanQueue": {
             "Type": "AWS::SQS::Queue",
             "Properties": {
-                "QueueName": "scan-file",
                 "ReceiveMessageWaitTimeSeconds" : 5
             }
         },
@@ -234,8 +243,7 @@
                         },
                         "Protocol": "sqs"
                     }
-                ],
-                "TopicName": "scan-s3-files"
+                ]
             }
         },
 
@@ -306,7 +314,7 @@
               "Path": "/",
               "Policies": [
                 {
-                  "PolicyName": "CloudwatchLogs",
+                  "PolicyName" : { "Ref" : "IAMPolicyName" },
                   "PolicyDocument": {
                     "Statement": [
                       {
@@ -341,7 +349,7 @@
               "Type": "AWS::Lambda::Function",
               "Properties": {
                 "Code": {
-                  "S3Bucket": "trend-repo-west-2",
+                  "S3Bucket": "trend-repo",
                   "S3Key": "s3-scan/DeleteS3File.zip"
                 },
                 "Description": "Delete malware from specific S3 Bucket",
@@ -415,7 +423,7 @@
         "RolePolicies": {
            "Type": "AWS::IAM::Policy",
            "Properties": {
-              "PolicyName": "root",
+             "PolicyName" : { "Ref" : "IAMPolicyName2" },
               "PolicyDocument": {
                  "Version" : "2012-10-17",
                  "Statement": [ {
@@ -471,7 +479,15 @@
               "fi\n",
              "sleep 15\n",
              "/opt/ds_agent/dsa_control -r\n",
-             "/opt/ds_agent/dsa_control -a dsm://agents.deepsecurity.trendmicro.com:443/ \"tenantID:",{ "Ref" : "TenantID" },"\" \"token:",{ "Ref" : "Token" },"\" \"policyid:",{ "Ref" : "PolicyID" },"\"\n"
+             "/opt/ds_agent/dsa_control -a dsm://agents.deepsecurity.trendmicro.com:443/ \"tenantID:",{ "Ref" : "TenantID" },"\" \"token:",{ "Ref" : "Token" },"\" \"policyid:",{ "Ref" : "PolicyID" },"\"\n",
+             "yum install python36 python36-pip -y\n",
+             "pip-3.6 install boto3\n",
+             "export SQS_URL=",{ "Ref" : "ScanQueue" },"\n",
+             "export SNS_TOPIC=",{ "Ref" : "Topic" },"\n",
+             "export AWS_REGION=",{ "Ref" : "AWS::Region" },"\n",
+             "wget https://s3.amazonaws.com/trend-repo/s3-scan/script.py\n",
+             "chmod +x script.py\n",
+             "python36 script.py"
 		           ]]}},
             "SecurityGroupIds": [{"Ref": "InstanceSecurityGroup"}],
             "IamInstanceProfile": {

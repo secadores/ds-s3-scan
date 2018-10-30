@@ -10,11 +10,14 @@ import json
 
 
 
-#Inicializando recursos da AWS
-queue_url = "https://sqs.us-east-1.amazonaws.com/102212442704/scan-file"
-sqs = boto3.resource('sqs','us-east-1')
+#Initializing AWS resources
+aws_region = os.environ['AWS_REGION']
+queue_url = os.environ['SQS_URL']
+sns_topic = os.environ['SNS_TOPIC']
+sqs = boto3.resource('sqs',aws_region)
 queue = sqs.Queue(queue_url)
-s3_resource = boto3.resource('s3', region_name='us-east-1')
+s3_resource = boto3.resource('s3', region_name=aws_region)
+
 
 
 #inicializando variaveis
@@ -23,8 +26,6 @@ files_count = 0
 bucket_prefix = 'cf'
 body = ""
 t = time.time()
-#os.mkdir(os.environ.get('HOME')+'/myfiles')
-#d = os.chdir(os.environ.get('/tmp'))
 d = os.chdir('/tmp')
 
 #Loop da chamadas das funcoes
@@ -58,31 +59,31 @@ while True:
             break
         except (FileNotFoundError, IOError):
             print("Malware Econtrado!")
-            response = client.publish(
-                TopicArn='arn:aws:sns:us-east-1:102212442704:s3-scan-malware-found',
-                Message={
-                    'bucket': bucket_name,
-                    'file': cflog_filekey
-                },
+            sns = boto3.client('sns',aws_region)
+            sns_message = {
+                'bucket': bucket_name,
+                'file': cflog_filekey
+            }
+
+            response = sns.publish(
+                TopicArn=sns_topic,
+                #TopicArn='arn:aws:sns:us-east-1:102212442704:S3ScanTest-Topic-1N7EHK2N3BOXX',
+                Message= json.dumps({
+                    'default': json.dumps(sns_message)
+                }),
                 Subject='Malware Found',
                 MessageStructure='json',
-                MessageAttributes={
-                    'string': {
-                        'DataType': 'string',
-                        'StringValue': 'string',
-                        'BinaryValue': b'bytes'
-                    }
-                }
+                MessageAttributes={}
             )
 
         print('Download complete, in %.5f seconds' % (time.time() - t2))
-
+        print(message)
        # os.system("/opt/ds_agent/dsa_control -m \"AntiMalwareManualScan:true\"")
 
         messages_to_delete.append({'Id': message.message_id,
                                    'ReceiptHandle': message.receipt_handle})
         print("%.5f" % (time.time() - t))
 
-        print('Apagando mensagem: {}'.format(cflog_filekey))
+        print('Deleting message: {}'.format(cflog_filekey))
         if len(messages_to_delete) > 0:
             delete_response = queue.delete_messages(Entries=messages_to_delete)
