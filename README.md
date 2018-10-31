@@ -79,3 +79,10 @@ Login. Go to Policies and click on "New..." and then on "Import from file..." an
   - This file is already stored in a public s3 bucket. The EC2 script will download this file and execute it in background fetching the SQS messages, downloading the S3 objects and, if necessery, pushing the notifications to the SNS topic.
 - lambda/index.js
   - This file is already stored in a zip file on a public s3 bucket. The lambda created by the stack will use this script to read the SNS notifications and delete the infected objects from the bucket.
+
+## Ideas For Improvement
+
+- Using an Auto Scalling Group instead of a single instance
+  - Maybe it can be 0 whenever there isn't any file to be analyzed and it could grow up as needed
+- Make it work for non DSaaS deployments
+- What else?
