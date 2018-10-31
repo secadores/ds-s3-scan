@@ -8,6 +8,12 @@ By the end of this documment, you are going to be able to setup a S3 bucket that
 
 ## How to Use It
 
+### On Deep Security as a Service Manager
+
+Login. Go to Policies and click on "New..." and then on "Import from file..." and select the _Policies.xml_ from the _deep-security_ folder. Take note of this new policy id and also the Tenant ID and Tenant Token.
+
+### On AWS
+
 1. First, login to AWS and enter CloudFormation ;)
 ![alt text](docs/ScreenShot1.png "Entering CloudFormation")
 
