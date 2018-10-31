@@ -4,13 +4,56 @@
 
 The objetive of this project is to proof the concept of using Deep Security to scan and protect a S3 bucket from malicious objects.
 
+By the end of this documment, you are going to be able to setup a S3 bucket that is going to be scanned by a Deep Security agent, all using a single CloudFormation template file.
+
 ## How to Use It
 
-Use the cloudformation.json file as the template for CloudFormation on AWS.
+1. First, login to AWS and enter CloudFormation ;)
+![alt text](docs/ScreenShot1.png "Entering CloudFormation")
+
+2. Click on "Create Stack" button.
+![alt text](docs/ScreenShot2.png "CloudFormation screen")
+
+3. Select "Upload a template to Amazon S3" and select the _cloudformation.json_ file.
+![alt text](docs/ScreenShot3.png "Selecting template")
+
+4. On this screen yoy need to fill up this form.
+  - Stack Name: A name for the Stack (duh)
+  - Bucket Name: It must be both a **new** and **globally unique** name for the bucket where the files are going to be pushed to and scanned latter.
+  - IAMPolicyName: A account **unique** name for the IAM policies that are going to be created.
+  - InstanceType: How big the EC2 instance is going to be.
+  - KeyName: A SSH key to later access the EC2 instance if ever needed.
+  - PolicyID: The ID (not name!) of the Deep Security policy created for the scanner.
+  - SSHLocation: The IP(s) address(es) allowed to SSH into the instance.
+  - TentantID: The Tenant ID for your Deep Security as a Service account.
+  - Token: The Token used by account to activate a Deep Security agent to the DSaaS.
+![alt text](docs/ScreenShot4.png "Filling up the Form")
+
+5. Check the "I aknowledge the AWS CloudFormation might create IAM resources". Because it will.
+![alt text](docs/ScreenShot5.png "Check it!")
+
+6. You'll see the stack will start to create itself. Wait for it...
+![alt text](docs/ScreenShot6.png "Wait for it...")
+
+7. Ready! Click on the "Resources" tab. Look for the **CFNBucket** and, by it, click on the bucket name you choose.
+![alt text](docs/ScreenShot7.png "Click it!")
+
+8. You'll be redirect to your new S3 bucket window. Click on "Upload".
+![alt text](docs/ScreenShot8.png "S3 bucket window")
+
+9. Upload Eicar (or something else...) to the bucket.
+![alt text](docs/ScreenShot9.png "Eicar!")
+
+10. Now you see it. Refresh (maybe a few times) the page.
+![alt text](docs/ScreenShot10.png "Buecket with the Eicar object")
+
+11. Now you don't!
+![alt text](docs/ScreenShot8.png "Not here!")
+
 
 ## How It Works
 
-![alt text](docs/flow.png "Logo Title Text 1")
+![alt text](docs/flow.png "Flow")
 
 1. A file is uploaded to specific S3 bucket
 2. A notification is sent to a SNS Topic
