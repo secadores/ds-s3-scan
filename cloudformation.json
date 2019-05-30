@@ -366,7 +366,7 @@
                   "Fn::GetAtt": [ "ExecutionRole", "Arn" ]
                 },
                 "Timeout": 5,
-                "Runtime": "nodejs6.10"
+                "Runtime": "nodejs8.10"
               },
               "DependsOn": [
                 "ExecutionRole"
